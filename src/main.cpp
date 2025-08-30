@@ -12,7 +12,6 @@ unsigned long glowStartTime = 0;
 
 // OIL pressure swich
 const byte OIL_SWITCH_PIN = 4; // D4: BLUE
-const byte BUILTIN_LED_PIN = 13;
 const unsigned long OIL_DEBOUNCE_MS = 100;
 bool oilIsLow = false;
 uint8_t oilLastRawReading = HIGH;
@@ -135,13 +134,13 @@ void handleGlowPlug() {
 
 void setupOilPressure() {
   pinMode(OIL_SWITCH_PIN, INPUT_PULLUP);  // use internal pull-up
-  pinMode(BUILTIN_LED_PIN, OUTPUT);
 
   // read initial state
   oilLastRawReading = digitalRead(OIL_SWITCH_PIN);
   oilStableState = oilLastRawReading;
-  oilIsLow = (oilStableState == LOW);
-  digitalWrite(BUILTIN_LED_PIN, oilIsLow ? HIGH : LOW);
+  // For typical oil pressure switch: LOW = normal pressure, HIGH = low pressure
+  oilIsLow = (oilStableState == HIGH);
+  currentState.oil = oilIsLow ? 0 : 1; // Initialize oil state
 
   oilLastChangeMillis = millis();
 }
@@ -157,7 +156,8 @@ void handleOilPressure() {
     // if stable long enough and different from stable state → update
     if (raw != oilStableState && (millis() - oilLastChangeMillis >= OIL_DEBOUNCE_MS)) {
       oilStableState = raw;
-      oilIsLow = (oilStableState == LOW);
+      // For typical oil pressure switch: LOW = normal pressure, HIGH = low pressure
+      oilIsLow = (oilStableState == HIGH);
 
       // Update sensor state (0 = low oil pressure, 1 = normal oil pressure)
       currentState.oil = oilIsLow ? 0 : 1;
