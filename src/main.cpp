@@ -1,8 +1,6 @@
 #include <Arduino.h>
 #include "glow_plug.h"
 #include "oil_pressure.h"
-#include "reverse_gear.h"
-#include "camera.h"
 #include "sensors.h"
 #include "communication.h"
 
@@ -14,8 +12,6 @@ void setup() {
   // Initialize all modules
   setupGlowPlug();
   setupOilPressure();
-  setupReverseGear();
-  setupCamera();
   
   // Initialize sensors and communication
   initializeSensors();
@@ -28,8 +24,6 @@ void loop() {
   // Handle all subsystems
   handleGlowPlug(); 
   handleOilPressure();
-  handleReverseGear();
-  handleCamera();
   
   // Update sensors periodically
   updateSensors();
