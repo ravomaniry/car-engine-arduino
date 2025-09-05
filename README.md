@@ -61,7 +61,7 @@ The ECU monitors and controls:
 Arduino Nano ATmega328
 ┌─────────────────────────────────┐
 │  D2 (GREEN) ────[MOSFET]─────── Glow Plug (+)
-│  D3 (RED) ──────[Button]─────── GND
+│  D3 (RED) ──────[GP Button]──── GND+
 │  D4 (BLUE) ─────[Oil Switch]─── GND
 │  A4 (SDA) ──────[I2C LCD]────── SDA
 │  A5 (SCL) ──────[I2C LCD]────── SCL
