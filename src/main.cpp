@@ -3,6 +3,7 @@
 #include "oil_pressure.h"
 #include "sensors.h"
 #include "communication.h"
+#include "lcd_display.h"
 
 void setup() {
   // Initialize serial communication for debugging
@@ -17,6 +18,9 @@ void setup() {
   initializeSensors();
   initializeCommunication();
   
+  // Initialize LCD display
+  setupLCD();
+  
   Serial.println("Setup complete. System ready.");
 }
 
@@ -27,4 +31,7 @@ void loop() {
   
   // Update sensors periodically
   updateSensors();
+  
+  // Update LCD display
+  updateLCD();
 }

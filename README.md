@@ -9,6 +9,7 @@ The ECU monitors and controls:
 - **Glow Plug System**: Manual activation with automatic timeout
 - **Oil Pressure Monitoring**: Real-time oil pressure switch monitoring
 - **Sensor Management**: Coolant temperature and fuel level sensors
+- **LCD Display**: Local 16x2 I2C display for redundancy and monitoring
 - **Communication**: Serial data transmission to display systems
 
 ## Hardware Requirements
@@ -17,6 +18,7 @@ The ECU monitors and controls:
 - **Transistor/MOSFET** for glow plug control
 - **Oil pressure switch** (normally closed type)
 - **Push button** for glow plug activation
+- **16x2 I2C LCD Display** for local monitoring
 - **Coolant temperature sensor** (analog)
 - **Fuel level sensor** (analog)
 
@@ -29,6 +31,13 @@ The ECU monitors and controls:
 | **D2** | Glow Plug Control   | GREEN      | Transistor/MOSFET gate   | Connect to gate of N-channel MOSFET/transistor for glow plug control       |
 | **D3** | Glow Plug Button    | RED        | Manual activation button | Connect push button between pin and GND (internal pull-up enabled)         |
 | **D4** | Oil Pressure Switch | BLUE       | Oil pressure monitoring  | Connect oil pressure switch between pin and GND (internal pull-up enabled) |
+
+### I2C Pins (LCD Display)
+
+| Pin    | Function | Description        | Wiring                               |
+| ------ | -------- | ------------------ | ------------------------------------ |
+| **A4** | I2C SDA  | Data line for LCD  | Connect to SDA pin on I2C LCD module |
+| **A5** | I2C SCL  | Clock line for LCD | Connect to SCL pin on I2C LCD module |
 
 ### Analog Pins (Future Implementation)
 
@@ -54,12 +63,22 @@ Arduino Nano ATmega328
 │  D2 (GREEN) ────[MOSFET]─────── Glow Plug (+)
 │  D3 (RED) ──────[Button]─────── GND
 │  D4 (BLUE) ─────[Oil Switch]─── GND
+│  A4 (SDA) ──────[I2C LCD]────── SDA
+│  A5 (SCL) ──────[I2C LCD]────── SCL
 │  A0 ────────────[Temp Sensor]─── (Future)
 │  A1 ────────────[Fuel Sensor]─── (Future)
 │  TX ────────────[Display Unit]───
 │  RX ────────────[Display Unit]───
 │  VCC ─────────── 5V/3.3V
 │  GND ─────────── Common Ground
+└─────────────────────────────────┘
+
+I2C LCD Module (16x2)
+┌─────────────────────────────────┐
+│  VCC ─────────── 5V
+│  GND ─────────── GND
+│  SDA ─────────── A4
+│  SCL ─────────── A5
 └─────────────────────────────────┘
 ```
 
@@ -90,14 +109,48 @@ Arduino Nano ATmega328
 - **Sensors**: Coolant temperature, fuel level
 - **Status**: Currently using placeholder values
 
-#### 4. Communication System (`communication.cpp/h`)
+#### 4. LCD Display System (`lcd_display.cpp/h`)
+
+- **Function**: Local 16x2 I2C display for redundancy
+- **Display**: Oil status, glow plug status, temperature
+- **Layout**: Oil (left), Glow (center), Temp (right)
+- **Update Rate**: 500ms intervals
+- **I2C Address**: 0x27 (configurable)
+- **Pins**: A4 (SDA), A5 (SCL)
+
+#### 5. Communication System (`communication.cpp/h`)
 
 - **Function**: Serial data transmission
 - **Protocol**: Simple text-based format
 - **Format**: `SENSOR:VALUE` (e.g., `OIL:1`, `GLOW:0`)
 - **Transmission**: On state change or forced update
 
-## Serial Communication Protocol
+## Display Information
+
+### LCD Display Layout
+
+The 16x2 I2C LCD provides local monitoring with the following layout:
+
+**Row 1 (Labels):**
+
+```
+OIL    GLOW TEMP
+```
+
+**Row 2 (Values):**
+
+```
+OK     ON   75C
+```
+
+**Display Behavior:**
+
+- **Oil Status**: Always displayed (OK/LOW)
+- **Glow Plug**: Only shown when active (ON)
+- **Temperature**: Always displayed (current °C)
+- **Update Rate**: Every 500ms
+
+### Serial Communication Protocol
 
 The ECU sends data in the following format:
 
@@ -134,14 +187,22 @@ const unsigned long OIL_DEBOUNCE_MS = 100;        // Debounce time
 const unsigned long SENSOR_UPDATE_INTERVAL_MS = 1000; // Update rate
 ```
 
+### LCD Display System
+
+```cpp
+const int LCD_I2C_ADDRESS = 0x27;                    // I2C address
+const unsigned long LCD_UPDATE_INTERVAL_MS = 500;    // Display update rate
+```
+
 ## Installation and Usage
 
 ### 1. Hardware Setup
 
 1. Connect components according to pin wiring table
-2. Ensure proper power supply (5V or 3.3V)
-3. Connect serial communication to display unit
-4. Verify all ground connections
+2. Connect I2C LCD module (VCC→5V, GND→GND, SDA→A4, SCL→A5)
+3. Ensure proper power supply (5V or 3.3V)
+4. Connect serial communication to display unit
+5. Verify all ground connections
 
 ### 2. Software Upload
 
@@ -157,9 +218,10 @@ pio run --target upload
 ### 3. Operation
 
 1. Power on the system
-2. Press glow plug button (D3) to activate preheating
-3. Monitor serial output for sensor data
-4. Oil pressure is monitored continuously
+2. LCD will show startup message, then display current status
+3. Press glow plug button (D3) to activate preheating
+4. Monitor LCD display and serial output for sensor data
+5. Oil pressure is monitored continuously
 
 ## Safety Considerations
 
@@ -185,13 +247,20 @@ pio run --target upload
    - Check switch wiring and ground connection
    - Test switch with multimeter
 
-3. **Serial Communication Issues**
+3. **LCD Display Issues**
+
+   - Check I2C address (try 0x3F if 0x27 doesn't work)
+   - Verify SDA (A4) and SCL (A5) connections
+   - Ensure 5V power supply to LCD module
+   - Check contrast adjustment on LCD module
+
+4. **Serial Communication Issues**
 
    - Check baud rate (9600)
    - Verify TX/RX connections
    - Test with serial monitor
 
-4. **Power Issues**
+5. **Power Issues**
    - Check voltage levels
    - Verify ground connections
    - Ensure adequate current capacity
@@ -199,9 +268,6 @@ pio run --target upload
 ## Future Enhancements
 
 - [ ] Implement actual analog sensor readings
-- [ ] Add reverse gear detection
-- [ ] Add camera control system
-- [ ] Implement CAN bus communication
 - [ ] Add data logging capabilities
 - [ ] Implement error handling and diagnostics
 
