@@ -6,8 +6,8 @@
 #include "lcd_display.h"
 
 void setup() {
-  // Initialize serial communication for debugging
-  Serial.begin(9600);
+  // Initialize serial communication for ESP32 communication
+  Serial.begin(115200);
   Serial.println("Engine Control Unit - Starting up...");
 
   // Initialize all modules
