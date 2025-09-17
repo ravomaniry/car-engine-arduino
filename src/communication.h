@@ -9,8 +9,6 @@ struct SensorState {
   int coolant;
   int fuel;
   bool glowActive;
-  bool cameraActive;
-  bool reverseGear;
 };
 
 // Communication functions
@@ -22,7 +20,5 @@ void updateOilState(int oilValue);
 void updateCoolantState(int coolantValue);
 void updateFuelState(int fuelValue);
 void updateGlowState(bool glowActive);
-void updateCameraState(bool cameraActive);
-void updateReverseGearState(bool reverseGear);
 
 #endif
