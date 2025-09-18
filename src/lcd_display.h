@@ -12,7 +12,7 @@ extern const int LCD_I2C_ADDRESS;
 void setupLCD();
 void updateLCD();
 void displayOilStatus(bool isLow);
-void displayGlowPlugStatus(bool isActive);
+void displayGlowPlugStatus(bool isActive, int remainingTime = 0);
 void displayTemperature(int temperature);
 
 #endif

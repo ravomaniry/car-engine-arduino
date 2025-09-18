@@ -13,5 +13,6 @@ extern const unsigned long GLOW_SWITCH_DEBOUNCE_MS;
 void setupGlowPlug();
 void handleGlowPlug();
 bool isGlowPlugActive();
+int getRemainingGlowTime();
 
 #endif

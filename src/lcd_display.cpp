@@ -17,6 +17,7 @@ static unsigned long lastLCDUpdate = 0;
 static bool lastOilLow = false;
 static bool lastGlowActive = false;
 static int lastTemperature = 0;
+static int lastRemainingGlowTime = 0;
 
 void setupLCD() {
   // Initialize I2C communication
@@ -51,11 +52,13 @@ void updateLCD() {
   bool currentOilLow = isOilLow();
   bool currentGlowActive = isGlowPlugActive();
   int currentTemperature = readCoolantSensor();
+  int currentRemainingGlowTime = getRemainingGlowTime();
   
   // Check if any values have changed
   bool needsUpdate = (currentOilLow != lastOilLow) || 
                      (currentGlowActive != lastGlowActive) || 
-                     (currentTemperature != lastTemperature);
+                     (currentTemperature != lastTemperature) ||
+                     (currentRemainingGlowTime != lastRemainingGlowTime);
   
   // Only update display if something changed
   if (needsUpdate) {
@@ -67,7 +70,8 @@ void updateLCD() {
     
     // Display glow plug status in the center only when active
     if (currentGlowActive) {
-      displayGlowPlugStatus(true);
+      int remainingTime = getRemainingGlowTime();
+      displayGlowPlugStatus(true, remainingTime);
     }
     
     // Display temperature on the right (characters 13-15, right-aligned)
@@ -77,6 +81,7 @@ void updateLCD() {
     lastOilLow = currentOilLow;
     lastGlowActive = currentGlowActive;
     lastTemperature = currentTemperature;
+    lastRemainingGlowTime = currentRemainingGlowTime;
   }
 }
 
@@ -91,11 +96,20 @@ void displayOilStatus(bool isLow) {
   }
 }
 
-void displayGlowPlugStatus(bool isActive) {
+void displayGlowPlugStatus(bool isActive, int remainingTime) {
   lcd.setCursor(6, 0);
   lcd.print("GLOW");
   lcd.setCursor(6, 1);
-  lcd.print("ON  ");
+  if (isActive && remainingTime > 0) {
+    String timeStr = String(remainingTime) + "s";
+    lcd.print(timeStr);
+    // Clear any remaining characters if the time string is shorter
+    for (int i = timeStr.length(); i < 4; i++) {
+      lcd.print(" ");
+    }
+  } else {
+    lcd.print("ON  ");
+  }
 }
 
 void displayTemperature(int temperature) {
