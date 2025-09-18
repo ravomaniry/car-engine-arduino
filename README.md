@@ -155,7 +155,7 @@ OK     ON   75C
 The ECU sends data in the following format:
 
 ```
-OIL:1          # Oil pressure (1=normal, 0=low)
+OIL_WARN:1     # Oil pressure warning (1=low pressure warning, 0=normal pressure)
 COOLANT:75     # Coolant temperature (°C)
 FUEL:50        # Fuel level (%)
 GLOW:1         # Glow plug status (1=active, 0=inactive)

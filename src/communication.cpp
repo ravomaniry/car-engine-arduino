@@ -7,7 +7,7 @@ static SensorState lastSentState = {-1, -1, -1, false}; // Initialize with diffe
 // Functions to send individual sensor data when changed or forced
 static void sendOilData(bool force = false) {
   if (force || currentState.oil != lastSentState.oil) {
-    Serial.print("OIL:");
+    Serial.print("OIL_WARN:");
     Serial.println(currentState.oil);
     lastSentState.oil = currentState.oil;
   }

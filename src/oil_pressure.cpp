@@ -19,7 +19,7 @@ void setupOilPressure() {
   oilStableState = oilLastRawReading;
   // With 1k/10k resistor setup: LOW = low pressure (switch closed), HIGH = normal pressure (switch open)
   oilIsLow = (oilStableState == LOW);
-  updateOilState(oilIsLow ? 0 : 1); // Initialize oil state
+  updateOilState(oilIsLow ? 1 : 0); // Initialize oil state (1 = low pressure warning, 0 = normal)
 
   oilLastChangeMillis = millis();
 }
@@ -38,8 +38,8 @@ void handleOilPressure() {
       // With 1k/10k resistor setup: LOW = low pressure (switch closed), HIGH = normal pressure (switch open)
       oilIsLow = (oilStableState == LOW);
 
-      // Update sensor state (0 = low oil pressure, 1 = normal oil pressure)
-      updateOilState(oilIsLow ? 0 : 1);
+      // Update sensor state (1 = low oil pressure warning, 0 = normal oil pressure)
+      updateOilState(oilIsLow ? 1 : 0);
     }
   }
 }
