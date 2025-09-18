@@ -1,8 +1,8 @@
 #include "communication.h"
 
 // State tracking variables
-static SensorState currentState = {1, 0, 0, false}; // Initialize with default values
-static SensorState lastSentState = {-1, -1, -1, false}; // Initialize with different values to force initial send
+static SensorState currentState = {0, 0, 0, false}; // Initialize with zero values
+static SensorState lastSentState = {0, 0, 0, false}; // Initialize with zero values
 
 // Functions to send individual sensor data when changed or forced
 static void sendOilData(bool force = false) {
