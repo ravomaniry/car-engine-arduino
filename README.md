@@ -26,11 +26,11 @@ The ECU monitors and controls:
 
 ### Digital Pins
 
-| Pin    | Function            | Color Code | Description              | Wiring                                                                     |
-| ------ | ------------------- | ---------- | ------------------------ | -------------------------------------------------------------------------- |
-| **D2** | Glow Plug Control   | GREEN      | Transistor/MOSFET gate   | Connect to gate of N-channel MOSFET/transistor for glow plug control       |
-| **D3** | Glow Plug Button    | RED        | Manual activation button | Connect push button between pin and GND (internal pull-up enabled)         |
-| **D4** | Oil Pressure Switch | BLUE       | Oil pressure monitoring  | Connect oil pressure switch between pin and GND (internal pull-up enabled) |
+| Pin    | Function            | Color Code | Description              | Wiring                                                                         |
+| ------ | ------------------- | ---------- | ------------------------ | ------------------------------------------------------------------------------ |
+| **D2** | Glow Plug Control   | GREEN      | Transistor/MOSFET gate   | Connect to gate of N-channel MOSFET/transistor for glow plug control           |
+| **D3** | Glow Plug Button    | RED        | Manual activation button | Connect push button between pin and GND (internal pull-up enabled)             |
+| **D4** | Oil Pressure Switch | BLUE       | Oil pressure monitoring  | Connect oil pressure switch pin to 1k resistor → D4 (internal pull-up enabled) |
 
 ### I2C Pins (LCD Display)
 
@@ -62,7 +62,7 @@ Arduino Nano ATmega328
 ┌─────────────────────────────────┐
 │  D2 (GREEN) ────[MOSFET]─────── Glow Plug (+)
 │  D3 (RED) ──────[GP Button]──── GND+
-│  D4 (BLUE) ─────[Oil Switch]─── GND
+│  D4 (BLUE) ─────[1k]───[Oil Switch Pin]
 │  A4 (SDA) ──────[I2C LCD]────── SDA
 │  A5 (SCL) ──────[I2C LCD]────── SCL
 │  A0 ────────────[Temp Sensor]─── (Future)
@@ -97,8 +97,8 @@ I2C LCD Module (16x2)
 #### 2. Oil Pressure Monitoring (`oil_pressure.cpp/h`)
 
 - **Function**: Monitors engine oil pressure
-- **Input**: Digital switch on D4
-- **Logic**: LOW = normal pressure, HIGH = low pressure
+- **Input**: Digital switch on D4 with 1k resistor for current limiting
+- **Logic**: LOW = low pressure (switch closed), HIGH = normal pressure (switch open)
 - **Debouncing**: 100ms switch debouncing
 - **Alert**: Immediate state change notification
 
@@ -245,6 +245,7 @@ pio run --target upload
 
    - Verify switch type (normally closed vs normally open)
    - Check switch wiring and ground connection
+   - Verify 1k resistor value and connection
    - Test switch with multimeter
 
 3. **LCD Display Issues**

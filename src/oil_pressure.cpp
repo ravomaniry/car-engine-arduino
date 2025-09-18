@@ -17,8 +17,8 @@ void setupOilPressure() {
   // read initial state
   oilLastRawReading = digitalRead(OIL_SWITCH_PIN);
   oilStableState = oilLastRawReading;
-  // For typical oil pressure switch: LOW = normal pressure, HIGH = low pressure
-  oilIsLow = (oilStableState == HIGH);
+  // With 1k/10k resistor setup: LOW = low pressure (switch closed), HIGH = normal pressure (switch open)
+  oilIsLow = (oilStableState == LOW);
   updateOilState(oilIsLow ? 0 : 1); // Initialize oil state
 
   oilLastChangeMillis = millis();
@@ -35,8 +35,8 @@ void handleOilPressure() {
     // if stable long enough and different from stable state → update
     if (raw != oilStableState && (millis() - oilLastChangeMillis >= OIL_DEBOUNCE_MS)) {
       oilStableState = raw;
-      // For typical oil pressure switch: LOW = normal pressure, HIGH = low pressure
-      oilIsLow = (oilStableState == HIGH);
+      // With 1k/10k resistor setup: LOW = low pressure (switch closed), HIGH = normal pressure (switch open)
+      oilIsLow = (oilStableState == LOW);
 
       // Update sensor state (0 = low oil pressure, 1 = normal oil pressure)
       updateOilState(oilIsLow ? 0 : 1);
