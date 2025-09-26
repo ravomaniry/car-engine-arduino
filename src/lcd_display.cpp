@@ -1,7 +1,7 @@
 #include "lcd_display.h"
 #include "glow_plug.h"
 #include "oil_pressure.h"
-#include "sensors.h"
+#include "temperature_sensor.h"
 
 // I2C LCD configuration (only 2 pins: SDA=A4, SCL=A5)
 const int LCD_I2C_ADDRESS = 0x27; // Common I2C address for LCD modules
@@ -51,7 +51,7 @@ void updateLCD() {
   // Get current values
   bool currentOilLow = isOilLow();
   bool currentGlowActive = isGlowPlugActive();
-  int currentTemperature = readCoolantSensor();
+  int currentTemperature = readTemperatureSensor();
   int currentRemainingGlowTime = getRemainingGlowTime();
   
   // Check if any values have changed

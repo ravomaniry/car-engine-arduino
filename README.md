@@ -1,210 +1,116 @@
 # Engine Control Unit (ECU) - Arduino Project
 
-This project implements an Engine Control Unit using an Arduino Nano ATmega328 for monitoring and controlling various engine systems in a vehicle.
+Engine Control Unit for 1997 Citroën Berlingo XUD engine using Arduino Nano ATmega328.
 
-## Overview
+## Features
 
-The ECU monitors and controls:
+- **Glow Plug Control**: Manual activation with 5-second timeout
+- **Oil Pressure Monitoring**: Real-time switch monitoring
+- **Temperature Sensor**: NTC thermistor (2.61kΩ off, 2.41kΩ running)
+- **Fuel Level Sensor**: Resistive sensor (122Ω measured)
+- **LCD Display**: 16x2 I2C display for local monitoring
+- **Serial Communication**: Data transmission to external systems
 
-- **Glow Plug System**: Manual activation with automatic timeout
-- **Oil Pressure Monitoring**: Real-time oil pressure switch monitoring
-- **Sensor Management**: Coolant temperature and fuel level sensors
-- **LCD Display**: Local 16x2 I2C display for redundancy and monitoring
-- **Communication**: Serial data transmission to display systems
-
-## Hardware Requirements
-
-- **Arduino Nano ATmega328** (New Bootloader)
-- **Transistor/MOSFET** for glow plug control
-- **Oil pressure switch** (normally closed type)
-- **Push button** for glow plug activation
-- **16x2 I2C LCD Display** for local monitoring
-- **Coolant temperature sensor** (analog)
-- **Fuel level sensor** (analog)
-
-## Pin Wiring Configuration
-
-### Digital Pins
-
-| Pin    | Function            | Color Code | Description              | Wiring                                                                         |
-| ------ | ------------------- | ---------- | ------------------------ | ------------------------------------------------------------------------------ |
-| **D2** | Glow Plug Control   | GREEN      | Transistor/MOSFET gate   | Connect to gate of N-channel MOSFET/transistor for glow plug control           |
-| **D3** | Glow Plug Button    | RED        | Manual activation button | Connect push button between pin and GND (internal pull-up enabled)             |
-| **D4** | Oil Pressure Switch | BLUE       | Oil pressure monitoring  | Connect oil pressure switch pin to 1k resistor → D4 (internal pull-up enabled) |
-
-### I2C Pins (LCD Display)
-
-| Pin    | Function | Description        | Wiring                               |
-| ------ | -------- | ------------------ | ------------------------------------ |
-| **A4** | I2C SDA  | Data line for LCD  | Connect to SDA pin on I2C LCD module |
-| **A5** | I2C SCL  | Clock line for LCD | Connect to SCL pin on I2C LCD module |
-
-### Analog Pins (Future Implementation)
-
-| Pin    | Function            | Description              | Wiring                                          |
-| ------ | ------------------- | ------------------------ | ----------------------------------------------- |
-| **A0** | Coolant Temperature | Temperature sensor input | Connect analog temperature sensor (0-5V output) |
-| **A1** | Fuel Level          | Fuel level sensor input  | Connect analog fuel level sensor (0-5V output)  |
-
-### Power and Communication
-
-| Pin         | Function             | Description                       |
-| ----------- | -------------------- | --------------------------------- |
-| **VCC**     | Power Supply         | 5V or 3.3V (depending on sensors) |
-| **GND**     | Ground               | Common ground for all components  |
-| **TX (D1)** | Serial Communication | Data transmission to display unit |
-| **RX (D0)** | Serial Communication | Data reception from display unit  |
-
-## Wiring Diagram
+## Complete Wiring Diagram
 
 ```
-Arduino Nano ATmega328
-┌─────────────────────────────────┐
-│  D2 (GREEN) ────[MOSFET]─────── Glow Plug (+)
-│  D3 (RED) ──────[GP Button]──── GND+
-│  D4 (BLUE) ─────[1k]───[Oil Switch Pin]
-│  A4 (SDA) ──────[I2C LCD]────── SDA
-│  A5 (SCL) ──────[I2C LCD]────── SCL
-│  A0 ────────────[Temp Sensor]─── (Future)
-│  A1 ────────────[Fuel Sensor]─── (Future)
-│  TX ────────────[Display Unit]───
-│  RX ────────────[Display Unit]───
-│  VCC ─────────── 5V/3.3V
-│  GND ─────────── Common Ground
-└─────────────────────────────────┘
-
-I2C LCD Module (16x2)
-┌─────────────────────────────────┐
-│  VCC ─────────── 5V
-│  GND ─────────── GND
-│  SDA ─────────── A4
-│  SCL ─────────── A5
-└─────────────────────────────────┘
+                    ┌─────────────────────────────────────────────────────────┐
+                    │                    ARDUINO NANO ATmega328                │
+                    │                                                         │
+                    │  D2 ──────[MOSFET]───────────────────────────────────── │
+                    │  D3 ──────[BUTTON]───────────────────────────────────── │
+                    │  D4 ──────[1kΩ]───[OIL SWITCH]──────────────────────── │
+                    │                                                         │
+                    │  A0 ──────[10kΩ]───[TEMP SENSOR]─────────────────────── │
+                    │  A1 ──────[10kΩ]───[FUEL SENSOR]─────────────────────── │
+                    │  A4 ──────[I2C LCD SDA]──────────────────────────────── │
+                    │  A5 ──────[I2C LCD SCL]──────────────────────────────── │
+                    │                                                         │
+                    │  5V ──────[SENSOR POWER]─────────────────────────────── │
+                    │  GND ─────[COMMON GROUND]────────────────────────────── │
+                    │  TX ──────[SERIAL OUT]───────────────────────────────── │
+                    │  RX ──────[SERIAL IN]────────────────────────────────── │
+                    └─────────────────────────────────────────────────────────┘
+                                    │
+                                    │
+                    ┌─────────────────────────────────────────────────────────┐
+                    │                    COMPONENT DETAILS                    │
+                    │                                                         │
+                    │  GLOW PLUG SYSTEM:                                      │
+                    │  D2 → N-MOSFET Gate → MOSFET Drain → Glow Plug (+)     │
+                    │  MOSFET Source → GND                                   │
+                    │  Glow Plug (-) → GND                                   │
+                    │                                                         │
+                    │  OIL PRESSURE SYSTEM:                                  │
+                    │  D4 → 1kΩ Resistor → Oil Switch Pin                   │
+                    │  Oil Switch → GND (normally closed)                    │
+                    │                                                         │
+                    │  TEMPERATURE SENSOR (NTC Thermistor):                 │
+                    │  5V → 10kΩ Pull-up → A0 → Temp Sensor Signal          │
+                    │  GND → Temp Sensor Ground                              │
+                    │  100nF Capacitor: A0 to GND                            │
+                    │  1N4007 Diode: A0 to 5V (protection)                  │
+                    │                                                         │
+                    │  FUEL LEVEL SENSOR (Resistive - 2 pins):              │
+                    │  A1 → Fuel Sensor Pin 1                               │
+                    │  GND → Fuel Sensor Pin 2                              │
+                    │  10kΩ Pull-up: A1 to 5V                               │
+                    │  100nF Capacitor: A1 to GND                            │
+                    │  1N4007 Diode: A1 to 5V (protection)                  │
+                    │                                                         │
+                    │  I2C LCD DISPLAY (16x2):                               │
+                    │  5V → LCD VCC                                          │
+                    │  GND → LCD GND                                         │
+                    │  A4 → LCD SDA                                          │
+                    │  A5 → LCD SCL                                          │
+                    │                                                         │
+                    │  SERIAL COMMUNICATION:                                 │
+                    │  TX (D1) → External Display Unit                       │
+                    │  RX (D0) → External Display Unit                       │
+                    └─────────────────────────────────────────────────────────┘
 ```
 
-## Software Architecture
+## Pin Assignments
 
-### Core Modules
+| Pin | Function            | Color  | Description            |
+| --- | ------------------- | ------ | ---------------------- |
+| D2  | Glow Plug Control   | GREEN  | MOSFET gate control    |
+| D3  | Glow Plug Button    | RED    | Manual activation      |
+| D4  | Oil Pressure Switch | BLUE   | Pressure monitoring    |
+| A0  | Temperature Sensor  | ORANGE | NTC thermistor input   |
+| A1  | Fuel Level Sensor   | YELLOW | Resistive sensor input |
+| A4  | I2C SDA             | -      | LCD data line          |
+| A5  | I2C SCL             | -      | LCD clock line         |
+| TX  | Serial TX           | -      | Data transmission      |
+| RX  | Serial RX           | -      | Data reception         |
 
-#### 1. Glow Plug System (`glow_plug.cpp/h`)
+## Sensor Specifications
 
-- **Function**: Controls diesel engine glow plug preheating
-- **Activation**: Manual button press (D3)
-- **Control**: Transistor/MOSFET switching (D2)
-- **Timeout**: Automatic 5-second cutoff
-- **Debouncing**: 100ms switch debouncing
+**Temperature Sensor:**
 
-#### 2. Oil Pressure Monitoring (`oil_pressure.cpp/h`)
+- Type: NTC Thermistor
+- Resistance: 2.61kΩ (off) → 2.41kΩ (running)
+- Voltage: ~2.05V (off) → ~1.95V (running)
+- ADC: ~419 (off) → ~399 (running)
 
-- **Function**: Monitors engine oil pressure
-- **Input**: Digital switch on D4 with 1k resistor for current limiting
-- **Logic**: LOW = low pressure (switch closed), HIGH = normal pressure (switch open)
-- **Debouncing**: 100ms switch debouncing
-- **Alert**: Immediate state change notification
+**Fuel Level Sensor:**
 
-#### 3. Sensor Management (`sensors.cpp/h`)
+- Type: Resistive float sensor
+- Current Reading: 122Ω (some fuel)
+- Voltage: ~0.06V (with 10kΩ pull-up only)
+- ADC: ~12
+- Note: Need empty/full tank measurements for complete calibration
 
-- **Function**: Manages analog sensor readings
-- **Update Rate**: 1-second intervals
-- **Sensors**: Coolant temperature, fuel level
-- **Status**: Currently using placeholder values
+## Installation Notes
 
-#### 4. LCD Display System (`lcd_display.cpp/h`)
+1. **Disconnect OEM 12V power** from both sensors
+2. **Power sensors with Arduino 5V** instead
+3. **Temperature sensor**: Located on thermostat housing (2 pins)
+4. **Fuel sensor**: Located in fuel tank sender unit (2 pins)
+5. **Wiring colors**: Yellow signal, green/yellow ground (verify with multimeter)
+6. **Safety**: Ensure proper fuel system isolation before installation
 
-- **Function**: Local 16x2 I2C display for redundancy
-- **Display**: Oil status, glow plug status, temperature
-- **Layout**: Oil (left), Glow (center), Temp (right)
-- **Update Rate**: 500ms intervals
-- **I2C Address**: 0x27 (configurable)
-- **Pins**: A4 (SDA), A5 (SCL)
-
-#### 5. Communication System (`communication.cpp/h`)
-
-- **Function**: Serial data transmission
-- **Protocol**: Simple text-based format
-- **Format**: `SENSOR:VALUE` (e.g., `OIL:1`, `GLOW:0`)
-- **Transmission**: On state change or forced update
-
-## Display Information
-
-### LCD Display Layout
-
-The 16x2 I2C LCD provides local monitoring with the following layout:
-
-**Row 1 (Labels):**
-
-```
-OIL    GLOW TEMP
-```
-
-**Row 2 (Values):**
-
-```
-OK     ON   75C
-```
-
-**Display Behavior:**
-
-- **Oil Status**: Always displayed (OK/LOW)
-- **Glow Plug**: Only shown when active (ON)
-- **Temperature**: Always displayed (current °C)
-- **Update Rate**: Every 500ms
-
-### Serial Communication Protocol
-
-The ECU sends data in the following format:
-
-```
-OIL_WARN:1     # Oil pressure warning (1=low pressure warning, 0=normal pressure)
-COOLANT:75     # Coolant temperature (°C)
-FUEL:50        # Fuel level (%)
-GLOW:1         # Glow plug status (1=active, 0=inactive)
-CAMERA:0       # Camera status (1=active, 0=inactive)
-REVERSE:0      # Reverse gear status (1=active, 0=inactive)
-```
-
-## Configuration Constants
-
-### Glow Plug System
-
-```cpp
-const unsigned long GLOW_TIME_SECONDS = 5;        // Glow duration
-const int GLOW_PLUG_TRANSISTOR_PIN = 2;           // Control pin
-const int GLOW_PLUG_BUTTON_PIN = 3;               // Button pin
-const unsigned long GLOW_SWITCH_DEBOUNCE_MS = 100; // Debounce time
-```
-
-### Oil Pressure System
-
-```cpp
-const byte OIL_SWITCH_PIN = 4;                    // Switch pin
-const unsigned long OIL_DEBOUNCE_MS = 100;        // Debounce time
-```
-
-### Sensor System
-
-```cpp
-const unsigned long SENSOR_UPDATE_INTERVAL_MS = 1000; // Update rate
-```
-
-### LCD Display System
-
-```cpp
-const int LCD_I2C_ADDRESS = 0x27;                    // I2C address
-const unsigned long LCD_UPDATE_INTERVAL_MS = 500;    // Display update rate
-```
-
-## Installation and Usage
-
-### 1. Hardware Setup
-
-1. Connect components according to pin wiring table
-2. Connect I2C LCD module (VCC→5V, GND→GND, SDA→A4, SCL→A5)
-3. Ensure proper power supply (5V or 3.3V)
-4. Connect serial communication to display unit
-5. Verify all ground connections
-
-### 2. Software Upload
+## Software Upload
 
 ```bash
 # Using PlatformIO
@@ -215,74 +121,37 @@ pio run --target upload
 # Upload the code
 ```
 
-### 3. Operation
+## Operation
 
-1. Power on the system
-2. LCD will show startup message, then display current status
+1. Power on system
+2. LCD shows startup message, then current status
 3. Press glow plug button (D3) to activate preheating
-4. Monitor LCD display and serial output for sensor data
-5. Oil pressure is monitored continuously
-
-## Safety Considerations
-
-- **Glow Plug Control**: Ensure proper MOSFET/transistor rating for glow plug current
-- **Oil Pressure**: Critical safety system - ensure proper switch wiring
-- **Power Supply**: Use appropriate voltage and current capacity
-- **Grounding**: Ensure all components share common ground
-- **Fuses**: Consider adding fuses for protection
+4. Monitor LCD display and serial output
+5. Oil pressure monitored continuously
 
 ## Troubleshooting
 
-### Common Issues
+**Temperature Sensor:**
 
-1. **Glow Plug Not Working**
+- Check 5V/GND connections
+- Verify 10kΩ pull-up resistor
+- Test voltage at A0 (~1.95-2.05V)
+- Check resistance (~2.41-2.61kΩ)
 
-   - Check MOSFET/transistor connections
-   - Verify button wiring and pull-up resistor
-   - Test with multimeter
+**Fuel Sensor:**
 
-2. **Oil Pressure False Readings**
+- Verify ~122Ω resistance
+- Test voltage at A1 (~0.06V with 10kΩ pull-up only)
+- Check 10kΩ pull-up resistor (A1 to 5V)
+- Measure empty/full tank for calibration
 
-   - Verify switch type (normally closed vs normally open)
-   - Check switch wiring and ground connection
-   - Verify 1k resistor value and connection
-   - Test switch with multimeter
+**General:**
 
-3. **LCD Display Issues**
-
-   - Check I2C address (try 0x3F if 0x27 doesn't work)
-   - Verify SDA (A4) and SCL (A5) connections
-   - Ensure 5V power supply to LCD module
-   - Check contrast adjustment on LCD module
-
-4. **Serial Communication Issues**
-
-   - Check baud rate (9600)
-   - Verify TX/RX connections
-   - Test with serial monitor
-
-5. **Power Issues**
-   - Check voltage levels
-   - Verify ground connections
-   - Ensure adequate current capacity
-
-## Future Enhancements
-
-- [ ] Implement actual analog sensor readings
-- [ ] Add data logging capabilities
-- [ ] Implement error handling and diagnostics
-
-## Development Environment
-
-- **Platform**: PlatformIO
-- **Framework**: Arduino
-- **Board**: Arduino Nano ATmega328 (New Bootloader)
-- **IDE**: VS Code with PlatformIO extension
-
-## License
-
-This project is open source. Please ensure compliance with local regulations when implementing in vehicles.
+- Check all ground connections
+- Verify power supply (5V)
+- Test with multimeter
+- Check I2C LCD address (0x27)
 
 ---
 
-**Note**: This ECU is designed for educational and experimental purposes. For production vehicle use, ensure compliance with automotive safety standards and regulations.
+**Note**: Designed for educational purposes. Ensure compliance with automotive safety standards for production use.
