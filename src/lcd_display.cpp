@@ -12,6 +12,7 @@ LiquidCrystal_I2C lcd(LCD_I2C_ADDRESS, 16, 2);
 // Display update timing and state tracking
 const unsigned long LCD_UPDATE_INTERVAL_MS = 1000; // Check for updates every 1 second
 static unsigned long lastLCDUpdate = 0;
+static bool firstUpdate = true; // Force first update to happen
 
 // Track previous values to detect changes
 static bool lastOilLow = false;
@@ -42,11 +43,13 @@ void setupLCD() {
 
 void updateLCD() {
   // Check for updates every LCD_UPDATE_INTERVAL_MS milliseconds
-  if (millis() - lastLCDUpdate < LCD_UPDATE_INTERVAL_MS) {
+  // But always allow the first update to happen
+  if (!firstUpdate && millis() - lastLCDUpdate < LCD_UPDATE_INTERVAL_MS) {
     return;
   }
   
   lastLCDUpdate = millis();
+  firstUpdate = false;
   
   // Get current values
   bool currentOilLow = isOilLow();

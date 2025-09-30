@@ -35,7 +35,7 @@ void initializeFuelSensor() {
   
   // Take initial reading to stabilize
   delay(100);
-  readFuelSensor();
+  readFuelLevel();
 }
 
 /**
