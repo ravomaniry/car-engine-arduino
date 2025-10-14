@@ -9,12 +9,12 @@ const int TEMP_SENSOR_MAX_TEMP = 150;              // Maximum temperature (°C)
 
 // Calibration values for Citroën Berlingo 1997 XUD engine coolant temperature sensor
 // Uses thermistor (NTC) - resistance decreases as temperature increases
-// Actual measured values: ~2.61kΩ when engine off, ~2.41kΩ after starting
-// With 10kΩ pull-up resistor and 5V supply
-const float TEMP_SENSOR_PULLUP_RESISTOR = 10000.0;    // 10kΩ pull-up resistor
-const float TEMP_SENSOR_BETA_COEFFICIENT = 3950.0;    // Beta coefficient for thermistor
-const float TEMP_SENSOR_NOMINAL_TEMP = 25.0;          // Nominal temperature (°C)
-const float TEMP_SENSOR_NOMINAL_RESISTANCE = 2610.0;  // Resistance at engine off (~2.61kΩ)
+// Measured: 1682Ω at 20°C (actual direct measurement)
+// Pull-up resistor calculated from voltage divider: 7.98kΩ
+const float TEMP_SENSOR_PULLUP_RESISTOR = 7980.0;     // Pull-up resistor (calculated from voltage divider)
+const float TEMP_SENSOR_BETA_COEFFICIENT = 3950.0;    // Beta coefficient for thermistor (typical for automotive NTC)
+const float TEMP_SENSOR_NOMINAL_TEMP = 20.0;          // Nominal temperature (°C) - actual measurement
+const float TEMP_SENSOR_NOMINAL_RESISTANCE = 1682.0;  // Resistance at 20°C (actual measured value)
 
 // Filtering for stable readings
 const int TEMP_FILTER_SIZE = 5;                    // Number of samples for averaging
@@ -85,8 +85,10 @@ int mapTemperature(int adcValue) {
   float voltage = (adcValue * 5.0) / 1023.0;
   
   // Calculate thermistor resistance using voltage divider formula
-  // R_thermistor = R_pullup * (V_supply / V_measured - 1)
-  float thermistorResistance = TEMP_SENSOR_PULLUP_RESISTOR * (5.0 / voltage - 1.0);
+  // Wiring: 5V → Pull-up → Analog Pin → Thermistor → Ground
+  // V_out = V_supply * R_thermistor / (R_pullup + R_thermistor)
+  // Solving for R_thermistor: R_thermistor = R_pullup * V_out / (V_supply - V_out)
+  float thermistorResistance = TEMP_SENSOR_PULLUP_RESISTOR * voltage / (5.0 - voltage);
   
   // Use Steinhart-Hart equation for thermistor temperature calculation
   // 1/T = 1/T0 + (1/B) * ln(R/R0)
